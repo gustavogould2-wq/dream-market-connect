@@ -216,22 +216,8 @@ export async function storefrontApiRequest(query: string, variables: Record<stri
 
   if (response.status === 402) {
     toast.error("Shopify: pagamento necessário", {
-      description: (
-        <>
-          <span>
-            O acesso à API Shopify requer um plano ativo. Visite{" "}
-            <a
-              href="https://admin.shopify.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline"
-            >
-              https://admin.shopify.com
-            </a>{" "}
-            para fazer upgrade.
-          </span>
-        </>
-      ),
+      description:
+        "O acesso à API Shopify requer um plano ativo. Visite https://admin.shopify.com para fazer upgrade.",
     });
     return null;
   }
