@@ -13,6 +13,7 @@ import {
 import { Loader2, ArrowLeft } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useCartStore } from "@/stores/cartStore";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { getProductByHandle } from "@/lib/shopify";
 import type { ShopifyProduct } from "@/lib/shopify";
 
