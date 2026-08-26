@@ -138,7 +138,9 @@ function ProductDetailPage() {
               <div key={option.name} className="mt-6">
                 <Label htmlFor={option.name}>{option.name}</Label>
                 <Select
-                  value={selectedVariant?.selectedOptions.find((o) => o.name === option.name)?.value}
+                  value={
+                    selectedVariant?.selectedOptions.find((o) => o.name === option.name)?.value ?? ""
+                  }
                   onValueChange={(value) => handleOptionChange(option.name, value)}
                 >
                   <SelectTrigger id={option.name} className="mt-2 w-full md:w-64">
