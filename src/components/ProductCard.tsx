@@ -15,6 +15,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem);
   const isLoading = useCartStore((state) => state.isLoading);
   const [isAdding, setIsAdding] = useState(false);
+  const hydrated = useHydrated();
 
   const variant = product.node.variants.edges[0]?.node;
   const image = product.node.images.edges[0]?.node;
