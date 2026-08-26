@@ -80,16 +80,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "LED Visual Santos — Painéis de LED para comunicação visual" },
+      {
+        name: "description",
+        content:
+          "Painéis e letreiros de LED indoor e outdoor para empresas em Santos-SP.",
+      },
+      { property: "og:title", content: "LED Visual Santos — Painéis de LED" },
+      {
+        property: "og:description",
+        content: "Painéis e letreiros de LED indoor e outdoor para empresas em Santos-SP.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap",
+      },
       {
         rel: "stylesheet",
         href: appCss,
@@ -121,10 +133,30 @@ function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="font-bold text-xl tracking-tight text-foreground hover:text-primary transition-colors">
-          Marketplace
+        <Link
+          to="/"
+          className="font-display text-lg font-bold tracking-tight text-foreground hover:text-primary transition-colors"
+        >
+          LED<span className="text-primary">VISUAL</span>
+          <span className="ml-2 hidden text-xs font-normal uppercase tracking-widest text-muted-foreground sm:inline">
+            Santos · SP
+          </span>
         </Link>
-        <CartDrawer />
+        <div className="flex items-center gap-4">
+          <a
+            href="/#produtos"
+            className="hidden text-sm text-muted-foreground hover:text-foreground sm:inline"
+          >
+            Painéis
+          </a>
+          <a
+            href="/#orcamento"
+            className="hidden text-sm text-muted-foreground hover:text-foreground sm:inline"
+          >
+            Orçamento
+          </a>
+          <CartDrawer />
+        </div>
       </div>
     </header>
   );
