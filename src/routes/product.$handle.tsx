@@ -47,6 +47,7 @@ function ProductDetailPage() {
   const addItem = useCartStore((state) => state.addItem);
   const isLoading = useCartStore((state) => state.isLoading);
   const [isAdding, setIsAdding] = useState(false);
+  const hydrated = useHydrated();
 
   if (!product) {
     return (
