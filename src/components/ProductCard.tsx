@@ -72,12 +72,12 @@ export function ProductCard({ product }: ProductCardProps) {
       <CardFooter className="p-4 pt-0">
         <Button
           onClick={handleAddToCart}
-          disabled={isAdding || isLoading || !variant?.availableForSale}
+          disabled={isAdding || isLoading || (hydrated && !variant?.availableForSale)}
           className="w-full"
         >
           {isAdding || isLoading ? (
             <Loader2 className="w-4 h-4 animate-spin" />
-          ) : !variant?.availableForSale ? (
+          ) : hydrated && !variant?.availableForSale ? (
             "Indisponível"
           ) : (
             "Adicionar ao carrinho"
