@@ -1,19 +1,11 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Loader2, ArrowLeft } from "lucide-react";
-import { Link } from "@tanstack/react-router";
 import { useCartStore } from "@/stores/cartStore";
-import { useHydrated } from "@/hooks/use-hydrated";
+import { SpecList } from "@/components/SpecList";
+import { parseSpecs } from "@/lib/specs";
 import { getProductByHandle } from "@/lib/shopify";
 import type { ShopifyProduct } from "@/lib/shopify";
 
@@ -25,10 +17,16 @@ const productQueryOptions = (handle: string) => ({
 export const Route = createFileRoute("/product/$handle")({
   head: ({ params }) => ({
     meta: [
-      { title: `${params.handle} — Marketplace` },
-      { name: "description", content: `Detalhes do produto ${params.handle}` },
-      { property: "og:title", content: `${params.handle} — Marketplace` },
-      { property: "og:description", content: `Detalhes do produto ${params.handle}` },
+      { title: `Painel de LED ${params.handle} | LED Visual Santos` },
+      {
+        name: "description",
+        content: `Especificações técnicas, preço e compra online do painel de LED ${params.handle} para comunicação visual.`,
+      },
+      { property: "og:title", content: `Painel de LED ${params.handle} | LED Visual Santos` },
+      {
+        property: "og:description",
+        content: `Especificações técnicas, preço e compra online do painel de LED ${params.handle}.`,
+      },
       { property: "og:type", content: "product" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -43,11 +41,15 @@ export const Route = createFileRoute("/product/$handle")({
 
 function ProductDetailPage() {
   const { handle } = Route.useParams();
-  const { data: product } = useSuspenseQuery<ShopifyProduct["node"] | null>(productQueryOptions(handle));
+  const { data: product } = useSuspenseQuery<ShopifyProduct["node"] | null>(
+    productQueryOptions(handle),
+  );
   const addItem = useCartStore((state) => state.addItem);
+  const getCheckoutUrl = useCartStore((state) => state.getCheckoutUrl);
   const isLoading = useCartStore((state) => state.isLoading);
   const [isAdding, setIsAdding] = useState(false);
-  const hydrated = useHydrated();
+  const [isBuying, setIsBuying] = useState(false);
+  const [variantIndex, setVariantIndex] = useState(0);
 
   if (!product) {
     return (
@@ -60,7 +62,10 @@ function ProductDetailPage() {
     );
   }
 
-  const [selectedVariant, setSelectedVariant] = useState(product.variants.edges[0]?.node);
+  const variants = product.variants.edges.map((edge) => edge.node);
+  const selectedVariant = variants[variantIndex] ?? variants[0];
+  const specs = parseSpecs(product.description);
+  const image = product.images.edges[0]?.node;
 
   const formattedPrice = selectedVariant
     ? new Intl.NumberFormat("pt-BR", {
@@ -69,9 +74,8 @@ function ProductDetailPage() {
       }).format(parseFloat(selectedVariant.price.amount))
     : null;
 
-  const handleAddToCart = async () => {
+  const addSelected = async () => {
     if (!selectedVariant) return;
-    setIsAdding(true);
     await addItem({
       product: { node: product },
       variantId: selectedVariant.id,
@@ -80,40 +84,37 @@ function ProductDetailPage() {
       quantity: 1,
       selectedOptions: selectedVariant.selectedOptions,
     });
+  };
+
+  const handleAddToCart = async () => {
+    setIsAdding(true);
+    await addSelected();
     setIsAdding(false);
   };
 
-  const handleOptionChange = (optionName: string, value: string) => {
-    const currentOptions = selectedVariant?.selectedOptions.map((opt) =>
-      opt.name === optionName ? { ...opt, value } : opt,
-    ) ?? [{ name: optionName, value }];
-
-    const matchingVariant = product.variants.edges.find((v) =>
-      currentOptions.every((opt) =>
-        v.node.selectedOptions.some((o) => o.name === opt.name && o.value === opt.value),
-      ),
-    );
-
-    if (matchingVariant) {
-      setSelectedVariant(matchingVariant.node);
-    }
+  const handleBuyNow = async () => {
+    setIsBuying(true);
+    await addSelected();
+    const checkoutUrl = getCheckoutUrl();
+    if (checkoutUrl) window.open(checkoutUrl, "_blank");
+    setIsBuying(false);
   };
 
-  const image = product.images.edges[0]?.node;
+  const busy = isAdding || isBuying || isLoading;
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-10">
         <Link
           to="/"
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-8"
         >
-          <ArrowLeft className="w-4 h-4 mr-1" />
+          <ArrowLeft className="w-4 h-4 mr-1" aria-hidden="true" />
           Voltar para a loja
         </Link>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
-          <div className="aspect-square bg-secondary/20 rounded-xl overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16">
+          <div className="aspect-square rounded-2xl border border-border bg-secondary/40 overflow-hidden">
             {image ? (
               <img
                 src={image.url}
@@ -128,51 +129,64 @@ function ProductDetailPage() {
           </div>
 
           <div className="flex flex-col">
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground">{product.title}</h1>
+            <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground">
+              {product.title}
+            </h1>
             {formattedPrice && (
-              <p className="text-2xl font-semibold text-primary mt-4">{formattedPrice}</p>
+              <p className="text-3xl font-bold text-primary mt-4">{formattedPrice}</p>
             )}
-            <p className="text-muted-foreground mt-6 leading-relaxed">
-              {product.description || "Sem descrição"}
-            </p>
 
-            {product.options.map((option) => (
-              <div key={option.name} className="mt-6">
-                <Label htmlFor={option.name}>{option.name}</Label>
-                <Select
-                  value={
-                    selectedVariant?.selectedOptions.find((o) => o.name === option.name)?.value ?? ""
-                  }
-                  onValueChange={(value) => handleOptionChange(option.name, value)}
-                >
-                  <SelectTrigger id={option.name} className="mt-2 w-full md:w-64">
-                    <SelectValue placeholder={`Selecione ${option.name}`} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {option.values.map((value) => (
-                      <SelectItem key={value} value={value}>
-                        {value}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            {variants.length > 1 && (
+              <div className="mt-6 flex flex-wrap gap-2">
+                {variants.map((variant, index) => (
+                  <button
+                    key={variant.id}
+                    type="button"
+                    onClick={() => setVariantIndex(index)}
+                    className={`rounded-md border px-4 py-2 text-sm transition-colors ${
+                      index === variantIndex
+                        ? "border-primary bg-primary/10 text-foreground"
+                        : "border-border text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {variant.title}
+                  </button>
+                ))}
               </div>
-            ))}
+            )}
 
-            <Button
-              onClick={handleAddToCart}
-              disabled={isAdding || isLoading || (hydrated && !selectedVariant?.availableForSale)}
-              className="mt-8 w-full md:w-auto md:self-start"
-              size="lg"
-            >
-              {isAdding || isLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : hydrated && !selectedVariant?.availableForSale ? (
-                "Indisponível"
+            <div className="mt-8">
+              <h2 className="font-display text-lg font-semibold text-foreground mb-3">
+                Especificações técnicas
+              </h2>
+              {specs.length > 0 ? (
+                <SpecList specs={specs} />
               ) : (
-                "Adicionar ao carrinho"
+                <p className="text-sm text-muted-foreground">
+                  Especificações técnicas sob consulta.
+                </p>
               )}
-            </Button>
+            </div>
+
+            <div className="mt-8 flex flex-col sm:flex-row gap-3">
+              <Button onClick={handleAddToCart} disabled={busy} size="lg" variant="outline">
+                {isAdding ? (
+                  <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  "Adicionar ao carrinho"
+                )}
+              </Button>
+              <Button onClick={handleBuyNow} disabled={busy} size="lg">
+                {isBuying ? (
+                  <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  "Comprar agora"
+                )}
+              </Button>
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Pagamento e entrega processados com segurança pela Shopify.
+            </p>
           </div>
         </div>
       </div>
