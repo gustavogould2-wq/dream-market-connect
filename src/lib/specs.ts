@@ -17,8 +17,8 @@ export function parseSpecs(description?: string | null): Spec[] {
   const specs: Spec[] = [];
 
   for (const match of text.matchAll(SPEC_RE)) {
-    const label = match[1].trim();
-    const value = match[2].trim();
+    const label = (match[1] ?? "").trim();
+    const value = (match[2] ?? "").trim();
     if (label && value) specs.push({ label, value });
   }
 
