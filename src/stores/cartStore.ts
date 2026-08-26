@@ -65,7 +65,7 @@ export const useCartStore = create<CartStore>()(
               clearCart();
             }
           } else {
-            const result = await addLineToShopifyCart(cidd, { ...item, lineId: null });
+            const result = await addLineToShopifyCart(cartId, { ...item, lineId: null });
             if (result.success) {
               const currentItems = get().items;
               set({ items: [...currentItems, { ...item, lineId: result.lineId ?? null }] });
