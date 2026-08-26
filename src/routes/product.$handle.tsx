@@ -13,6 +13,7 @@ import {
 import { Loader2, ArrowLeft } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useCartStore } from "@/stores/cartStore";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { getProductByHandle } from "@/lib/shopify";
 import type { ShopifyProduct } from "@/lib/shopify";
 
@@ -46,6 +47,7 @@ function ProductDetailPage() {
   const addItem = useCartStore((state) => state.addItem);
   const isLoading = useCartStore((state) => state.isLoading);
   const [isAdding, setIsAdding] = useState(false);
+  const hydrated = useHydrated();
 
   if (!product) {
     return (
@@ -159,13 +161,13 @@ function ProductDetailPage() {
 
             <Button
               onClick={handleAddToCart}
-              disabled={isAdding || isLoading || !selectedVariant?.availableForSale}
+              disabled={isAdding || isLoading || (hydrated && !selectedVariant?.availableForSale)}
               className="mt-8 w-full md:w-auto md:self-start"
               size="lg"
             >
               {isAdding || isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
-              ) : !selectedVariant?.availableForSale ? (
+              ) : hydrated && !selectedVariant?.availableForSale ? (
                 "Indisponível"
               ) : (
                 "Adicionar ao carrinho"

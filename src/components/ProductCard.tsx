@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { useCartStore } from "@/stores/cartStore";
+import { useHydrated } from "@/hooks/use-hydrated";
 import type { ShopifyProduct } from "@/lib/shopify";
 
 interface ProductCardProps {
@@ -14,6 +15,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem);
   const isLoading = useCartStore((state) => state.isLoading);
   const [isAdding, setIsAdding] = useState(false);
+  const hydrated = useHydrated();
 
   const variant = product.node.variants.edges[0]?.node;
   const image = product.node.images.edges[0]?.node;
@@ -70,12 +72,12 @@ export function ProductCard({ product }: ProductCardProps) {
       <CardFooter className="p-4 pt-0">
         <Button
           onClick={handleAddToCart}
-          disabled={isAdding || isLoading || !variant?.availableForSale}
+          disabled={isAdding || isLoading || (hydrated && !variant?.availableForSale)}
           className="w-full"
         >
           {isAdding || isLoading ? (
             <Loader2 className="w-4 h-4 animate-spin" />
-          ) : !variant?.availableForSale ? (
+          ) : hydrated && !variant?.availableForSale ? (
             "Indisponível"
           ) : (
             "Adicionar ao carrinho"
