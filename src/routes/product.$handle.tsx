@@ -161,13 +161,13 @@ function ProductDetailPage() {
 
             <Button
               onClick={handleAddToCart}
-              disabled={isAdding || isLoading || !selectedVariant?.availableForSale}
+              disabled={isAdding || isLoading || (hydrated && !selectedVariant?.availableForSale)}
               className="mt-8 w-full md:w-auto md:self-start"
               size="lg"
             >
               {isAdding || isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
-              ) : !selectedVariant?.availableForSale ? (
+              ) : hydrated && !selectedVariant?.availableForSale ? (
                 "Indisponível"
               ) : (
                 "Adicionar ao carrinho"
