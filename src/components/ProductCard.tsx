@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { useCartStore } from "@/stores/cartStore";
+import { useHydrated } from "@/hooks/use-hydrated";
 import type { ShopifyProduct } from "@/lib/shopify";
 
 interface ProductCardProps {
